@@ -1,0 +1,32 @@
+import spacy
+from youtube_transcript_api import YouTubeTranscriptApi
+from sumy.parsers.plaintext import PlaintextParser
+from sumy.nlp.tokenizers import Tokenizer
+from sumy.summarizers.lsa import LsaSummarizer
+
+# Load English language model in spacy
+nlp = spacy.load("en_core_web_sm")
+
+# Retrieve transcript for video ID
+video_id = '3b0TDBvqYsU' #'LUS3Cwlel04'  #'fpIHbuUgPqc'
+transcript = YouTubeTranscriptApi.get_transcript(video_id)
+
+# Join transcript text
+transcript_text = ' '.join([entry['text'] for entry in transcript])
+
+# Segment transcript text into sentences using spacy
+doc = nlp(transcript_text)
+sentences = [sent.text for sent in doc.sents]
+
+# Parse summarized text for summarization
+summarized_text = ' '.join(sentences[:10])  # Use first 10 sentences for summary
+parser = PlaintextParser.from_string(summarized_text, Tokenizer('english'))
+
+# Summarize summarized text to 3 sentences
+summarizer = LsaSummarizer()
+summarizer.stop_words = {'\n'}
+summary = summarizer(parser.document, sentences_count=3)
+
+# Print summary sentences
+for sentence in summary:
+    print(sentence)
